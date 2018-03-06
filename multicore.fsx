@@ -41,7 +41,7 @@ let printUsage (monitor:PerformanceCounter) : unit =
         elif usage >= lowThreshold then medColor
         else lowColor
 
-    usage.ToString()
+    (usage / 10).ToString()
     |> pangoColor color
     |> printf "%s"
 
