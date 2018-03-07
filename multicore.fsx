@@ -10,19 +10,38 @@ let highColor = "#FF0000" // The color for high cpu usage
 type encoding =
     | Dec // decimal encoding (0-9)
     | Hex // hex encoding (0-F)
+    | Bar of int * string // unicode bars
+                 // May be buggy and not work with some fonts.
+                 // The first argument is a scaling factor.
+                 // Adjust the scaling factor to zero the bars.
+                 // The second argument is the background color.
 
 let encoding = Dec
 // let encoding = Hex
+// let encoding = Bar (11000, "#000000")
 
-// encodes a cpu core usage in the (0-99) range as a string.
-let encode (usage:int) : string =
+let encodeDec (usage:int) : string =
+    (usage / 10).ToString()
+
+let encodeHex (usage:int) : string =
+    (usage / 16).ToString("X")
+
+let pangoColorBar (color:string) (usage:int) (scaling:int) (bgcolor:string)
+    : string =
+
+    let rise = scaling * usage / 100
+    sprintf "<span foreground=\"%s\" background=\"%s\" rise=\"%d\">█</span>"
+            bgcolor
+            color
+            rise
+
+// encodes a cpu core usage in the (0-99) range
+// as a pango formatted string with a specified text color
+let pangoColor (color:string) (usage:int) : string =
     match encoding with
-    | Dec -> (usage / 10).ToString()
-    | Hex -> (usage / 16).ToString("X")
-
-// return a pango string with a specified text color
-let pangoColor (color:string) (s:string) : string =
-    sprintf "<span foreground=\"%s\">%s</span>" color s
+    | Dec -> sprintf "<span foreground=\"%s\">%s</span>" color (encodeDec usage)
+    | Hex -> sprintf "<span foreground=\"%s\">%s</span>" color (encodeHex usage)
+    | Bar(scaling, bgcolor) -> pangoColorBar color usage scaling bgcolor
 
 // get the number of cores
 let ncores = System.Environment.ProcessorCount
@@ -54,7 +73,7 @@ let printUsage (monitor:PerformanceCounter) : unit =
         elif usage >= lowThreshold then medColor
         else lowColor
 
-    encode usage
+    usage
     |> pangoColor color
     |> printf "%s"
 
