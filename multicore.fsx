@@ -10,38 +10,27 @@ let highColor = "#FF0000" // The color for high cpu usage
 type encoding =
     | Dec // decimal encoding (0-9)
     | Hex // hex encoding (0-F)
-    | Bar of int * string // unicode bars
-                 // May be buggy and not work with some fonts.
-                 // The first argument is a scaling factor.
-                 // Adjust the scaling factor to zero the bars.
-                 // The second argument is the background color.
+    | Bar of int // unicode bars
+                 // May be somewhat buggy.
+                 // The argument is a scaling factor.
 
-let encoding = Dec
+// let encoding = Dec
 // let encoding = Hex
-// let encoding = Bar (11000, "#000000")
-
-let encodeDec (usage:int) : string =
-    (usage / 10).ToString()
-
-let encodeHex (usage:int) : string =
-    (usage / 16).ToString("X")
-
-let pangoColorBar (color:string) (usage:int) (scaling:int) (bgcolor:string)
-    : string =
-
-    let rise = scaling * usage / 100
-    sprintf "<span foreground=\"%s\" background=\"%s\" rise=\"%d\">█</span>"
-            bgcolor
-            color
-            rise
+let encoding = Bar 11000
 
 // encodes a cpu core usage in the (0-99) range
 // as a pango formatted string with a specified text color
 let pangoColor (color:string) (usage:int) : string =
     match encoding with
-    | Dec -> sprintf "<span foreground=\"%s\">%s</span>" color (encodeDec usage)
-    | Hex -> sprintf "<span foreground=\"%s\">%s</span>" color (encodeHex usage)
-    | Bar(scaling, bgcolor) -> pangoColorBar color usage scaling bgcolor
+    | Dec ->
+        let usageAsDecimal = (usage / 10).ToString()
+        sprintf "<span foreground=\"%s\">%s</span>" color usageAsDecimal
+    | Hex ->
+        let usageAsHex = (usage / 16).ToString("X")
+        sprintf "<span foreground=\"%s\">%s</span>" color usageAsHex
+    | Bar scaling ->
+        let rise = scaling * usage / 100
+        sprintf "<span foreground=\"%s\" rise=\"%d\">_</span>" color rise
 
 // get the number of cores
 let ncores = System.Environment.ProcessorCount
