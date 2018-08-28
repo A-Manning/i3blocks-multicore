@@ -14,9 +14,9 @@ type encoding =
                  // May be somewhat buggy.
                  // The argument is a scaling factor.
 
-// let encoding = Dec
+let encoding = Dec
 // let encoding = Hex
-let encoding = Bar 11000
+// let encoding = Bar 11000
 
 // encodes a cpu core usage in the (0-99) range
 // as a pango formatted string with a specified text color
@@ -52,10 +52,13 @@ System.Threading.Thread.Sleep(1000);
 let printUsage (monitor:PerformanceCounter) : unit =
     // usage as an integer
     let usage = monitor.NextValue()
+                |> abs // a bug in .NET means that sometimes, a value like -0.5 can be reported.
                 |> floor
                 |> int32
 
-    if usage >= 100 then failwith "core usage can't be above 100%!" else
+
+    if usage >= 100 then failwith "core usage can't be above 100%!"
+    elif usage < 0 then failwith "core usage can't be below 0%!" else
 
     let color =
         if usage > highThreshold then highColor
